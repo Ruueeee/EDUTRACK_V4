@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { ok, FORBIDDEN, UNAUTHORIZED, SERVER_ERROR } from "@/lib/api"
 import type { Prisma, Role } from "@prisma/client"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth()
