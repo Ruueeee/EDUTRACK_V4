@@ -7,55 +7,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  STUDENT
-  INSTRUCTOR
-  ADMIN
-}
-
-enum SubmissionStatus {
-  PENDING
-  SUBMITTED
-  GRADED
-  LATE
-}
-
-enum TaskStatus {
-  PENDING
-  COMPLETED
-}
-
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  role         Role     @default(STUDENT)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
+  id             String        @id @default(cuid())
+  name           String
+  email          String        @unique
+  passwordHash   String
+  role           Role          @default(STUDENT)
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  activityLogs   ActivityLog[]
   coursesCreated Course[]      @relation("InstructorCourses")
   enrollments    Enrollment[]
-  submissions    Submission[]
   selfNotes      SelfNote[]
-  activityLogs   ActivityLog[]
+  submissions    Submission[]
 }
 
 model Course {
-  id          String   @id @default(cuid())
-  title       String
-  description String?  @db.Text
-  classCode   String   @unique
-  isArchived  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id            String         @id @default(cuid())
+  title         String
+  description   String?        @db.Text
+  classCode     String         @unique
+  isArchived    Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   instructorId  String
-  instructor    User           @relation("InstructorCourses", fields: [instructorId], references: [id])
-  enrollments   Enrollment[]
   announcements Announcement[]
   assignments   Assignment[]
+  instructor    User           @relation("InstructorCourses", fields: [instructorId], references: [id])
+  enrollments   Enrollment[]
 
   @@index([instructorId])
 }
@@ -63,11 +43,10 @@ model Course {
 model Enrollment {
   id       String   @id @default(cuid())
   joinedAt DateTime @default(now())
-
   userId   String
   courseId String
-  user     User   @relation(fields: [userId], references: [id])
-  course   Course @relation(fields: [courseId], references: [id])
+  course   Course   @relation(fields: [courseId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, courseId])
   @@index([courseId])
@@ -79,22 +58,20 @@ model Announcement {
   body      String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  courseId String
-  course   Course @relation(fields: [courseId], references: [id])
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
 
   @@index([courseId])
 }
 
 model Assignment {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String
-  description String?  @db.Text
+  description String?      @db.Text
   dueDate     DateTime
-  maxPoints   Int      @default(100)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  maxPoints   Int          @default(100)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   courseId    String
   course      Course       @relation(fields: [courseId], references: [id])
   submissions Submission[]
@@ -104,21 +81,20 @@ model Assignment {
 }
 
 model Submission {
-  id          String           @id @default(cuid())
-  fileUrl     String?
-  fileName    String?
-  status      SubmissionStatus @default(PENDING)
-  grade       Int?
-  feedback    String?          @db.Text
-  submittedAt DateTime?
-  gradedAt    DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-
+  id           String           @id @default(cuid())
+  fileUrl      String?
+  fileName     String?
+  status       SubmissionStatus @default(PENDING)
+  grade        Int?
+  feedback     String?          @db.Text
+  submittedAt  DateTime?
+  gradedAt     DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
   studentId    String
   assignmentId String
-  student      User       @relation(fields: [studentId], references: [id])
-  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id])
+  student      User             @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, assignmentId])
   @@index([assignmentId])
@@ -131,9 +107,8 @@ model SelfNote {
   body      String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -143,11 +118,23 @@ model ActivityLog {
   action    String
   metadata  Json?
   createdAt DateTime @default(now())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
   @@index([action])
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum SubmissionStatus {
+  PENDING
+  SUBMITTED
+  GRADED
+  LATE
 }
